@@ -1,0 +1,71 @@
+{
+  "name": "tscom",
+  "version": "0.0.1",
+  "description": "compile javascript or typescript files in to bundle javascript",
+  "keywords": [
+    "compile",
+    "javascript",
+    "typescript",
+    "bundle",
+    "minify",
+    "rollup",
+    "babel"
+  ],
+  "license": "MIT",
+  "author": "llcawc",
+  "homepage": "https://github.com/llcawc/tscom",
+  "type": "module",
+  "main": "./plugin/tscom.js",
+  "exports": "./plugin/tscom.js",
+  "files": [
+    "plugin",
+    "package.json",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "format": "prettier --write .",
+    "lint": "prettier --check . && eslint ./src && stylelint src/**/*.css",
+    "fix": "eslint ./src --fix && stylelint src/**/*.css --fix",
+    "tsc": "tsc -p ./source",
+    "js": "tsc -p ./src/ts",
+    "start": "gulp assets",
+    "styles": "gulp styles",
+    "scripts": "gulp scripts",
+    "build": "gulp build"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.22.0",
+    "@types/babel__core": "^7.20.5",
+    "@types/bootstrap": "^5.2.10",
+    "@types/node": "^22.13.10",
+    "bootstrap": "^5.3.3",
+    "del": "^8.0.0",
+    "eslint": "^9.22.0",
+    "globals": "^16.0.0",
+    "gulp": "^5.0.0",
+    "licss": "^0.0.7",
+    "prettier": "^3.5.3",
+    "prettier-plugin-embed": "^0.5.0",
+    "prettier-plugin-organize-imports": "^4.1.0",
+    "stylelint": "^16.16.0",
+    "stylelint-config-clean-order": "^7.0.0",
+    "stylelint-config-standard": "^37.0.0",
+    "stylelint-config-standard-scss": "^14.0.0",
+    "stylelint-config-twbs-bootstrap": "^16.0.0",
+    "stylelint-scss": "^6.11.1",
+    "tslib": "^2.8.1",
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.26.1"
+  },
+  "dependencies": {
+    "@babel/core": "^7.26.10",
+    "@babel/preset-env": "^7.26.9",
+    "@rollup/plugin-babel": "^6.0.4",
+    "@rollup/plugin-commonjs": "^28.0.3",
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^12.1.2",
+    "rollup": "^4.35.0"
+  }
+}
