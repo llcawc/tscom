@@ -1,7 +1,7 @@
 {
   "name": "tscom",
-  "version": "0.0.2",
-  "description": "compile javascript or typescript files in to bundle javascript",
+  "version": "0.0.4",
+  "description": "compiling, minifying, and bundling javascript or typescript files",
   "keywords": [
     "compile",
     "javascript",
