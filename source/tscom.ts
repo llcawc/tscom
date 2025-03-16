@@ -4,45 +4,65 @@ import commonjs from '@rollup/plugin-commonjs'
 import resolve from '@rollup/plugin-node-resolve'
 import terser from '@rollup/plugin-terser'
 import typescript, { RollupTypescriptOptions } from '@rollup/plugin-typescript'
-import { dirname } from 'node:path'
-import { rollup } from 'rollup'
+import { glob } from 'glob'
+import { basename, dirname, extname } from 'node:path'
+import { rollup, OutputOptions } from 'rollup'
 
 export default async function tscom({
-  src,
-  dist,
+  input,
+  dir,
+  format,
   minify,
   sourcemap,
   tsOptions,
 }: {
-  src: string
-  dist: string
+  input: string | string[]
+  dir: string | undefined
+  format: 'amd' | 'cjs' | 'es' | 'iife' | 'umd'
   minify: boolean | undefined
   sourcemap: boolean | undefined
   tsOptions: RollupTypescriptOptions | undefined
 }) {
   try {
-    const bundle = await rollup({
-      input: src,
-      plugins: [
-        typescript(
-          tsOptions ?? {
-            compilerOptions: { lib: ['ESNext', 'DOM', 'DOM.Iterable'], target: 'ESNext' },
-            include: [dirname(src) + '/**/*'],
-          }
-        ),
-        resolve(),
-        commonjs({ include: 'node_modules/**' }),
-        babel({ babelHelpers: 'bundled' }),
-      ],
-    })
-    await bundle.write({
-      file: dist,
-      format: 'iife',
-      name: 'main',
-      plugins: [(minify ?? true) ? terser({ format: { comments: false } }) : false],
-      sourcemap: sourcemap ?? false,
-    })
-  } catch (e) {
-    console.log(e)
+    const src = input
+    let ignorList: string[] | undefined = undefined
+
+    if (typeof src === 'object') {
+      ignorList = src.filter((file) => /!/.test(file))
+      ignorList = ignorList.map((item) => item.replace(/!/, ''))
+    }
+
+    const pathList = await glob(src, { ignore: ignorList })
+    pathList.forEach((path) => compile(path))
+
+    async function compile(filename: string) {
+      const inputOptions = {
+        input: filename,
+        plugins: [
+          typescript(
+            tsOptions ?? {
+              compilerOptions: { lib: ['ESNext', 'DOM', 'DOM.Iterable'], target: 'ESNext' },
+              include: [dirname(filename) + '/**/*'],
+            }
+          ),
+          resolve(),
+          commonjs({ include: 'node_modules/**' }),
+          babel({ babelHelpers: 'bundled' }),
+        ],
+      }
+
+      const outputOptions: OutputOptions = {
+        dir: dir ?? dirname(filename),
+        format: format ?? 'iife',
+        name: basename(filename, extname(filename)),
+        plugins: [(minify ?? true) ? terser({ format: { comments: false } }) : false],
+        sourcemap: sourcemap ?? false,
+      }
+
+      const bundle = await rollup(inputOptions)
+      await bundle.write(outputOptions)
+    }
+  } catch (error) {
+    console.error(error)
   }
 }

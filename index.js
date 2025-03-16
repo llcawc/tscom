@@ -4,8 +4,9 @@ import compile from './plugin/tscom.js'
 // scripts task
 async function scripts() {
   await compile({
-    src: 'src/ts/main.ts',
-    dist: 'dist/js/main.min.js',
+    input: 'src/ts/main.ts',
+    dir: 'dist/js',
+    format: 'umd',
     minify: false,
     sourcemap: true,
     tsOptions: {

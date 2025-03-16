@@ -29,8 +29,9 @@ async function styles() {
 // scripts task
 function scripts() {
   return compile({
-    src: 'src/scripts/main.js',
-    dist: 'dist/js/main.min.js',
+    input: ['src/ts/*.ts', '!src/ts/main.ts'],
+    dir: 'dist/js',
+    format: 'es',
   })
 }
 
@@ -63,5 +64,5 @@ function fonts() {
 
 // export
 export { clean, copy, images, fonts, styles, scripts }
-export const assets = series(clean, copy, images, fonts)
-export const build = series(assets, styles, scripts)
+export const assets = series(clean, copy, images, fonts, styles)
+export const build = series(assets, scripts)

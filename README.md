@@ -23,17 +23,18 @@ options:
 
 ```
 {
-    src: string; // input file include "imports" instructions
-    dist: string; // output bundele file
-    minify: boolean | undefined; // (default: true) minify output file
-    sourcemap: boolean | undefined; // (default: false) include sourcemap file
+    input: string | string[]; // input file or files (glob patterns)
+    dir: string | undefined;  // folder for output files (default: same folder)
+    format: 'amd' | 'cjs' | 'es' | 'iife' | 'umd'; // format output files (default: 'iife')
+    minify: boolean | undefined; // (default: true) minify output files
+    sourcemap: boolean | undefined; // (default: false) include sourcemap files
     tsOptions: RollupTypescriptOptions | undefined; // tsconfig for typescript files
 }
 
 default tsOptions:
   {
     compilerOptions: { lib: ['ESNext', 'DOM', 'DOM.Iterable'], target: 'ESNext' },
-    include: [dirname(src) + '/**/*'],
+    include: [dirname(filename) + '/**/*'],
   }
 ```
 
@@ -45,8 +46,9 @@ import compile from 'tscom'
 // scripts task
 function scripts() {
   return compile({
-    src: 'src/scripts/main.ts',
-    dist: 'dist/js/main.min.js',
+    input: ['src/ts/*.ts', '!src/ts/main.ts'],
+    dir: 'dist/js',
+    format: 'es',
   })
 }
 
