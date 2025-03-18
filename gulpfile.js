@@ -2,7 +2,7 @@
 import compile from './plugin/tscom.js'
 
 import { deleteAsync } from 'del'
-import { src, dest, series } from 'gulp'
+import { dest, series, src } from 'gulp'
 import licss, { rename } from 'licss'
 
 // variables & paths
@@ -29,7 +29,7 @@ async function styles() {
 // scripts task
 function scripts() {
   return compile({
-    input: ['src/ts/*.ts', '!src/ts/main.ts'],
+    input: ['src/scripts/*.js', '!src/scripts/main.js'],
     dir: 'dist/js',
     format: 'es',
   })
@@ -63,6 +63,6 @@ function fonts() {
 }
 
 // export
-export { clean, copy, images, fonts, styles, scripts }
+export { clean, copy, fonts, images, scripts, styles }
 export const assets = series(clean, copy, images, fonts, styles)
 export const build = series(assets, scripts)

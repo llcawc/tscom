@@ -3,7 +3,7 @@ import compile from './plugin/tscom.js'
 
 // scripts task
 async function scripts() {
-  await compile({
+  return compile({
     input: 'src/ts/main.ts',
     dir: 'dist/js',
     format: 'umd',
@@ -16,4 +16,8 @@ async function scripts() {
   })
 }
 
-await scripts()
+// run scripts
+const list = await scripts()
+
+// list of compiled files
+console.log(list)
