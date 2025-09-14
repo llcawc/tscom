@@ -1,7 +1,7 @@
 {
   "name": "tscom",
-  "version": "0.0.5",
-  "description": "compiling, minifying, and bundling javascript or typescript files",
+  "version": "0.0.6",
+  "description": "bundling, compiling, and minifying javascript or typescript files",
   "keywords": [
     "compile",
     "javascript",
@@ -24,49 +24,30 @@
     "README.md"
   ],
   "scripts": {
-    "format": "prettier --write .",
-    "lint": "prettier --check . && eslint ./src && stylelint src/**/*.css",
-    "fix": "eslint ./src --fix && stylelint src/**/*.css --fix",
-    "tsc": "tsc -p ./source",
-    "js": "tsc -p ./src/ts",
-    "assets": "gulp assets",
-    "styles": "gulp styles",
-    "scripts": "gulp scripts",
-    "build": "gulp build"
+    "tsc": "tsc -p ./source"
   },
   "devDependencies": {
-    "@eslint/js": "^9.22.0",
+    "@eslint/js": "^9.35.0",
     "@types/babel__core": "^7.20.5",
-    "@types/bootstrap": "^5.2.10",
-    "@types/node": "^22.13.10",
-    "bootstrap": "^5.3.3",
-    "del": "^8.0.0",
-    "eslint": "^9.22.0",
-    "globals": "^16.0.0",
-    "gulp": "^5.0.0",
-    "licss": "^0.0.7",
-    "prettier": "^3.5.3",
+    "@types/node": "^24.3.3",
+    "eslint": "^9.35.0",
+    "globals": "^16.4.0",
+    "prettier": "^3.6.2",
     "prettier-plugin-embed": "^0.5.0",
-    "prettier-plugin-organize-imports": "^4.1.0",
-    "stylelint": "^16.16.0",
-    "stylelint-config-clean-order": "^7.0.0",
-    "stylelint-config-standard": "^37.0.0",
-    "stylelint-config-standard-scss": "^14.0.0",
-    "stylelint-config-twbs-bootstrap": "^16.0.0",
-    "stylelint-scss": "^6.11.1",
-    "typescript-eslint": "^8.26.1"
+    "prettier-plugin-organize-imports": "^4.2.0",
+    "typescript-eslint": "^8.43.0"
   },
   "dependencies": {
-    "@babel/core": "^7.26.10",
-    "@babel/preset-env": "^7.26.9",
+    "@babel/core": "^7.28.4",
+    "@babel/preset-env": "^7.28.3",
     "@rollup/plugin-babel": "^6.0.4",
-    "@rollup/plugin-commonjs": "^28.0.3",
+    "@rollup/plugin-commonjs": "^28.0.6",
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-terser": "^0.4.4",
-    "@rollup/plugin-typescript": "^12.1.2",
-    "glob": "^11.0.1",
-    "rollup": "^4.35.0",
+    "@rollup/plugin-typescript": "^12.1.4",
+    "glob": "^11.0.3",
+    "rollup": "^4.50.1",
     "tslib": "^2.8.1",
-    "typescript": "^5.8.2"
+    "typescript": "^5.9.2"
   }
 }

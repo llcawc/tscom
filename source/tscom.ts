@@ -22,27 +22,50 @@ import { OutputOptions, Plugin, rollup } from 'rollup'
  *
  * ```js
  * // import modules
- * import compile from 'tscom'
- * // scripts task
- * async function scripts() {
- *   return compile({
- *     input: 'src/ts/main.ts',
- *     dir: 'dist/js',
- *     format: 'umd',
- *     minify: false,
- *     sourcemap: true,
- *     tsOptions: {
- *       compilerOptions: { lib: ['ESNext', 'DOM', 'DOM.Iterable'], target: 'ESNext' },
- *       include: ['src/ts/*'],
- *     },
- *   })
+ * import process from 'node:process'
+ * import compile from './plugin/tscom.js'
+ *
+ * const compileConfig = {
+ *   input: 'src/ts/main.ts',
+ *   dir: 'dist/js',
+ *   format: 'es',
+ *   minify: false,
+ *   sourcemap: true,
+ *   tsOptions: {
+ *     compilerOptions: { target: 'ESNext', lib: ['ESNext', 'DOM', 'DOM.Iterable'] },
+ *     include: ['src/ts/*'],
+ *   },
  * }
+ *
+ * // scripts task
+ * export async function scripts() {
+ *   try {
+ *     const result = await compile(compileConfig)
+ *     return result
+ *   } catch (error) {
+ *     console.error('❌ Compilation error:', error.message)
+ *     throw error // Throwing an exception for external handling
+ *   }
+ * }
+ *
  * // run scripts
- * const list = await scripts()
- * // list of compiled files
- * console.log(list)
+ * try {
+ *   const list = await scripts()
+ *
+ *   // Проверка результата
+ *   if (Array.isArray(list)) {
+ *     console.log('✅ Compiled files:', list.join('\n'))
+ *   } else if (list === null) {
+ *     console.warn('⚠️ Compilation completed without results')
+ *   } else {
+ *     console.warn('⚠️ Invalid compilation result format')
+ *   }
+ * } catch {
+ *    process.exit(1) // Force termination on critical error
+ * }
  * ```
  */
+
 export default async function tscom({
   input,
   dir,
@@ -59,28 +82,28 @@ export default async function tscom({
   tsOptions: RollupTypescriptOptions | undefined
 }) {
   try {
-    // Устанавливает переменную inputFiles в значение свойства input объекта параметров.
+    // Sets the inputFiles variable to the value of the input property of the options object.
     const inputFiles = input
 
-    // Если inputFiles является массивом, фильтрует список файлов, которые нужно игнорировать, и удаляет символ ! из имен файлов.
+    // If inputFiles is an array, filters the list of files to ignore and removes the ! character from file names.
     let ignoreList: string[] | undefined = undefined
     if (Array.isArray(inputFiles)) {
       ignoreList = inputFiles.filter((file) => /!/.test(file))
       ignoreList = ignoreList.map((item) => item.replace(/!/, ''))
     }
 
-    // Получает список путей к файлам, которые нужно скомпилировать, с помощью функции glob.
+    // Gets a list of paths to files to compile using the glob function.
     const pathList = await glob(inputFiles, { ignore: ignoreList })
 
-    // Создает промис, который выполняет функцию compile для каждого пути в списке путей.
+    // Creates a promise that executes the compile function for each path in the path list.
     const list = Promise.all(pathList.map((path) => compile(path)))
 
-    // Функция compile
+    // The compile function
     async function compile(filename: string) {
-      // Устанавливает плагины для входных файлов.
+      // Installs plugins for input files.
       let inputPlugins = [resolve(), commonjs({ include: 'node_modules/**' }), babel({ babelHelpers: 'bundled' })]
 
-      // Если имя файла заканчивается на .ts, добавляет плагин TypeScript к списку плагинов.
+      // If the file name ends in .ts, adds the TypeScript plugin to the list of plugins.
       if (/\.ts$/i.test(filename)) {
         inputPlugins = [
           typescript(
@@ -92,18 +115,18 @@ export default async function tscom({
           ...inputPlugins,
         ]
       }
-      // Устанавливает опции для входных файлов.
+      // Sets options for input files.
       const inputOptions = {
         input: filename,
         plugins: [...inputPlugins],
       }
 
-      // Устанавливает плагины для выходных файлов.
+      // Installs plugins for output files.
       let outputPlugins: Plugin<unknown>[] = []
       if (minify ?? true) {
         outputPlugins = [terser({ format: { comments: false } })]
       }
-      // Устанавливает опции для выходных файлов.
+      // Sets options for output files.
       const outputOptions: OutputOptions = {
         dir: dir ?? dirname(filename),
         format: format ?? 'iife',
@@ -112,17 +135,18 @@ export default async function tscom({
         sourcemap: sourcemap ?? false,
       }
 
-      // Создает бандл с помощью функции rollup и записывает его в выходную директорию.
+      // Creates a bundle using the rollup function and writes it to the output directory.
       const bundle = await rollup(inputOptions)
       await bundle.write(outputOptions)
 
-      // Возвращает имя файла.
+      // Returns the file name.
       return filename
     }
-    // Возвращает промис, который разрешается в массив имен скомпилированных файлов.
+    // Returns a promise that resolves to an array of compiled file names.
     return list
   } catch (error) {
-    // Сообщает об ошибке
+    // Reports an error
     console.error(error)
+    throw error
   }
 }
