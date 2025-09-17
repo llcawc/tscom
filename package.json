@@ -1,6 +1,6 @@
 {
   "name": "tscom",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "bundling, compiling, and minifying javascript or typescript files",
   "keywords": [
     "compile",
@@ -15,26 +15,44 @@
   "author": "llcawc",
   "homepage": "https://github.com/llcawc/tscom",
   "type": "module",
-  "main": "./plugin/tscom.js",
-  "exports": "./plugin/tscom.js",
+  "main": "./lib/tscom.js",
+  "exports": "./lib/tscom.js",
   "files": [
-    "plugin",
+    "lib",
     "package.json",
     "LICENSE",
     "README.md"
   ],
   "scripts": {
-    "tsc": "tsc -p ./source"
+    "test": "node test",
+    "format": "prettier --write .",
+    "lint": "prettier --check . && eslint ./app && stylelint app/**/*.scss",
+    "fix": "eslint ./app --fix && stylelint app/**/*.scss --fix",
+    "tsc": "tsc -p ./src",
+    "js": "tsc -p ./app/ts",
+    "build": "pnpm js && gulp build"
   },
   "devDependencies": {
     "@eslint/js": "^9.35.0",
+    "@pasmurno/pscss": "^0.0.1",
+    "@pasmurno/serve": "^0.0.4",
     "@types/babel__core": "^7.20.5",
+    "@types/bootstrap": "^5.2.10",
     "@types/node": "^24.3.3",
+    "bootstrap": "^5.3.8",
+    "del": "^8.0.0",
     "eslint": "^9.35.0",
     "globals": "^16.4.0",
+    "gulp": "^5.0.1",
     "prettier": "^3.6.2",
     "prettier-plugin-embed": "^0.5.0",
     "prettier-plugin-organize-imports": "^4.2.0",
+    "stylelint": "^16.24.0",
+    "stylelint-config-clean-order": "^7.0.0",
+    "stylelint-config-standard": "^39.0.0",
+    "stylelint-config-standard-scss": "^16.0.0",
+    "stylelint-config-twbs-bootstrap": "^16.1.0",
+    "stylelint-scss": "^6.12.1",
     "typescript-eslint": "^8.43.0"
   },
   "dependencies": {
@@ -45,6 +63,7 @@
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.1.4",
+    "commander": "^14.0.1",
     "glob": "^11.0.3",
     "rollup": "^4.50.1",
     "tslib": "^2.8.1",

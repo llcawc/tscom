@@ -1,0 +1,4 @@
+# Ignore files:
+dist/**/*.*
+**/vendor/**/*.*
+src/**/*.scss

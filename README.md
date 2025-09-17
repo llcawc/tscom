@@ -40,19 +40,29 @@ default tsOptions:
 
 sample:
 
-```
-import compile from 'tscom'
+```js
+// import modules
+import { compile } from "tscom";
+
+const compileConfig = {
+  input: "app/ts/main.ts",
+  dir: "dist/js",
+  format: "es",
+  minify: false,
+  sourcemap: true,
+  tsOptions: {
+    compilerOptions: { target: "ES6" },
+    include: ["app/ts/**/*"],
+  },
+};
 
 // scripts task
-function scripts() {
-  return compile({
-    input: ['src/ts/*.ts', '!src/ts/main.ts'],
-    dir: 'dist/js',
-    format: 'es',
-  })
+export async function scripts() {
+  await compile(compileConfig);
 }
 
-export { scripts }
+// run scripts
+await scripts();
 ```
 
 ---

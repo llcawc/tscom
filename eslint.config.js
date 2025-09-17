@@ -11,5 +11,5 @@ export default defineConfig([
     languageOptions: { globals: globals.browser },
   },
   tseslint.configs.recommended,
-  globalIgnores(['**/node_modules/', '.git/']),
+  globalIgnores(['**/node_modules/', '.git/', 'dist/*', '**/vendor/*']),
 ])

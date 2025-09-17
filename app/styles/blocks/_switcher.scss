@@ -1,0 +1,84 @@
+// _switcher.scss
+// стили переключателя цветовых тем
+@use "bootstrap" as bs;
+
+.switcher-dropdown {
+  display: flex;
+  align-items: center;
+
+  .icon {
+    width: 1em;
+    height: 1em;
+  }
+
+  @include bs.media-breakpoint-up(lg) {
+    margin-bottom: 2px;
+  }
+}
+
+.switcher-dropdown .btn-switcher {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin: 0;
+  padding: .375rem;
+  border: 0;
+  border-radius: .375rem;
+
+  text-decoration: none;
+
+  background-color: transparent;
+
+  &::after {
+    color: bs.$textcolor;
+  }
+
+  svg {
+    color: bs.$textcolor;
+  }
+}
+
+.switcher-dropdown .dropdown-menu {
+  top: 100%;
+  right: 0;
+  left: auto;
+
+  padding: .125rem;
+  border-radius: .5rem;
+
+  li + li {
+    margin-top: .125rem;
+  }
+
+  .dropdown-item {
+    border-radius: .375rem;
+    color: bs.$darkcolor;
+
+    &:active {
+      background-color: bs.$accent;
+    }
+  }
+
+  .active {
+    font-weight: 700;
+    color: bs.$lightcolor;
+    background-color: bs.$accent;
+
+    .icon {
+      display: block !important; // stylelint-disable-line declaration-no-important
+    }
+  }
+}
+
+.switcher-dropdown .dropdown-menu *:focus-visible {
+  border-radius: 4px;
+  outline: 4px solid rgba(bs.$accent, .5) !important;
+  box-shadow: none !important;
+}
+
+[data-bs-theme="dark"] {
+  .switcher-dropdown .dropdown-menu .dropdown-item {
+    color: bs.$lightcolor;
+  }
+}
