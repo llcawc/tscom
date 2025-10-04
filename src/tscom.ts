@@ -5,12 +5,140 @@ import resolve from '@rollup/plugin-node-resolve'
 import terser from '@rollup/plugin-terser'
 import typescript, { RollupTypescriptOptions } from '@rollup/plugin-typescript'
 import { glob } from 'glob'
+import { Buffer } from 'node:buffer'
 import { basename, dirname, extname } from 'node:path'
-import { OutputOptions, Plugin, rollup } from 'rollup'
+import { Transform } from 'node:stream'
+import PluginError from 'plugin-error'
+import { OutputOptions, rollup } from 'rollup'
+import File from 'vinyl'
+
+// Define options
+function defineOptions({
+  filename, // file name for compile
+  dir = undefined, // output dir for bundle.write
+  format = 'iife', // format output files (default: 'iife')
+  minify = true, // (default: true) minify output files
+  sourcemap = false, // may be need source map
+  tsOptions = undefined, // tsconfig for typescript files
+}: {
+  filename: string
+  dir?: string | undefined
+  format?: 'amd' | 'cjs' | 'es' | 'iife' | 'umd' | undefined
+  minify?: boolean | undefined
+  sourcemap?: boolean | 'inline' | 'hidden' | undefined
+  tsOptions?: RollupTypescriptOptions | undefined
+}) {
+  // Installs plugins for input files.
+  let inputPlugins = [resolve(), commonjs({ include: 'node_modules/**' }), babel({ babelHelpers: 'bundled' })]
+
+  // Typescript options default
+  tsOptions = tsOptions ?? {
+    compilerOptions: { lib: ['ESNext', 'DOM', 'DOM.Iterable'], target: 'ESNext' },
+    include: [dirname(filename) + '/**/*'],
+  }
+
+  // If the file name ends in .ts, adds the TypeScript plugin to the list of plugins.
+  if (/\.ts$/i.test(filename)) {
+    inputPlugins = [typescript(tsOptions), ...inputPlugins]
+  }
+  // Sets options for input files.
+  const inputOptions = {
+    input: filename,
+    plugins: [...inputPlugins],
+  }
+
+  // Sets options for output files.
+  const outputOptions: OutputOptions = {
+    dir,
+    format,
+    name: basename(filename, extname(filename)),
+    sourcemap,
+    plugins: minify ? [terser({ format: { comments: false } })] : [],
+  }
+
+  return { inputOptions, outputOptions }
+}
+/**
+ * Gulp plugin for compiles, bandles and minify JavaScript or TypeScript files using Rollup.
+ * @param format - The output format for the compiled files.
+ * @param minify - Whether to minify the compiled files.
+ * @param tsOptions - Options for the TypeScript compiler.
+ * @returns - Transform stream
+ */
+function tscom({
+  format = 'iife', // format output files (default: 'iife')
+  minify = true, // (default: true) minify output files
+  tsOptions = undefined, // tsconfig for typescript files
+}: {
+  format?: 'amd' | 'cjs' | 'es' | 'iife' | 'umd' | undefined
+  minify?: boolean | undefined
+  tsOptions?: RollupTypescriptOptions | undefined
+} = {}) {
+  const stream = new Transform({ objectMode: true })
+
+  stream._transform = async function (file: File, _enc, callback) {
+    // Skip null files
+    if (file.isNull()) {
+      return callback(null, file)
+    }
+
+    // Reject streams
+    if (file.isStream()) {
+      callback(new PluginError('tscom', 'Streams are not supported'))
+      return
+    }
+
+    // run compiler
+    if (file.isBuffer()) {
+      const filename = file.path
+      const dir = undefined
+      const sourcemap = file.sourceMap ? 'hidden' : false
+
+      try {
+        // Check extersion
+        if (!/\.js$|\.ts$/i.test(filename)) {
+          throw new Error('Only file extensions ".js" or ".ts" are supported!')
+        }
+        // Define options
+        const { inputOptions, outputOptions } = defineOptions({
+          filename,
+          dir,
+          format,
+          minify,
+          sourcemap,
+          tsOptions,
+        })
+
+        // Creates a bundle using the rollup function and writes it to the file.
+        const bundle = await rollup(inputOptions)
+        const { output } = await bundle.generate(outputOptions)
+        const chunk = output[0]
+
+        // If the file name ends in .ts, rename extname file
+        if (/\.ts$/i.test(filename)) {
+          file.extname = '.js'
+        }
+
+        file.contents = Buffer.from(chunk.code)
+        if (sourcemap && chunk.map) {
+          file.sourceMap = chunk.map
+        }
+
+        callback(null, file)
+      } catch (err) {
+        const opts = Object.assign({}, { fileName: file.path })
+        const error = new PluginError('tscom', err as string, opts)
+        callback(error)
+        throw error
+      }
+    }
+  }
+  return stream
+}
 
 /**
  * Compiles, bandles and minify JavaScript or TypeScript files using Rollup.
- * @param input - The input file or files to compile.
+ * @param input - The glob input file or files to compile.
  * @param dir - The output directory for the compiled files.
  * @param format - The output format for the compiled files.
  * @param minify - Whether to minify the compiled files.
@@ -25,7 +153,7 @@ import { OutputOptions, Plugin, rollup } from 'rollup'
  * import { compile } from "tscom";
  *
  * const compileConfig = {
- *   input: "app/ts/main.ts",
+ *   input: ["app/ts/*.ts", "!app/ts/main.ts"], // glob input
  *   dir: "dist/js",
  *   format: "es",
  *   minify: false,
@@ -58,75 +186,64 @@ async function compile({
   dir: string | undefined
   format: 'amd' | 'cjs' | 'es' | 'iife' | 'umd'
   minify: boolean | undefined
-  sourcemap: boolean | undefined
+  sourcemap: boolean | 'inline' | 'hidden' | undefined
   tsOptions: RollupTypescriptOptions | undefined
 }) {
   try {
-    // Sets the inputFiles variable to the value of the input property of the options object.
-    const inputFiles = input
-
-    // If inputFiles is an array, filters the list of files to ignore and removes the ! character from file names.
-    let ignoreList: string[] | undefined = undefined
-    if (Array.isArray(inputFiles)) {
-      ignoreList = inputFiles.filter((file) => /!/.test(file))
-      ignoreList = ignoreList.map((item) => item.replace(/!/, ''))
-    }
-
-    // Gets a list of paths to files to compile using the glob function.
-    const pathList = await glob(inputFiles, { ignore: ignoreList })
-
+    // Gets a list of files to compile
+    const pathList = await getFiles(input)
     // Creates a promise that executes the compile function for each path in the path list.
-    Promise.all(pathList.map((path) => compile(path)))
-
-    // The compile function
-    async function compile(filename: string) {
-      // Installs plugins for input files.
-      let inputPlugins = [resolve(), commonjs({ include: 'node_modules/**' }), babel({ babelHelpers: 'bundled' })]
-
-      // If the file name ends in .ts, adds the TypeScript plugin to the list of plugins.
-      if (/\.ts$/i.test(filename)) {
-        inputPlugins = [
-          typescript(
-            tsOptions ?? {
-              compilerOptions: { lib: ['ESNext', 'DOM', 'DOM.Iterable'], target: 'ESNext' },
-              include: [dirname(filename) + '/**/*'],
-            }
-          ),
-          ...inputPlugins,
-        ]
-      }
-      // Sets options for input files.
-      const inputOptions = {
-        input: filename,
-        plugins: [...inputPlugins],
-      }
-
-      // Installs plugins for output files.
-      let outputPlugins: Plugin<unknown>[] = []
-      if (minify ?? true) {
-        outputPlugins = [terser({ format: { comments: false } })]
-      }
-      // Sets options for output files.
-      const outputOptions: OutputOptions = {
-        dir: dir ?? dirname(filename),
-        format: format ?? 'iife',
-        name: basename(filename, extname(filename)),
-        plugins: [...outputPlugins],
-        sourcemap: sourcemap ?? false,
-      }
-
-      // Creates a bundle using the rollup function and writes it to the output directory.
-      const bundle = await rollup(inputOptions)
-      await bundle.write(outputOptions)
-      return
-    }
-    return
+    Promise.all(pathList.map((path) => compileFile(path, dir, format, minify, sourcemap, tsOptions)))
   } catch (error) {
     // Reports an error
     console.error(error)
-    throw error
   }
 }
 
+// The compile file function
+async function compileFile(
+  filename: string,
+  dir: string | undefined,
+  format: 'amd' | 'cjs' | 'es' | 'iife' | 'umd' | undefined,
+  minify: boolean | undefined,
+  sourcemap: boolean | 'inline' | 'hidden' | undefined,
+  tsOptions: RollupTypescriptOptions | undefined
+) {
+  try {
+    // Check extersion
+    if (!/\.js$|\.ts$/i.test(filename)) {
+      throw new Error(`Only file extensions ".js" or ".ts" are supported!\nDetails:\n  filename: ${filename}`)
+    }
+
+    // Define options
+    const { inputOptions, outputOptions } = defineOptions({
+      filename,
+      dir: dir ?? dirname(filename),
+      format,
+      minify,
+      sourcemap,
+      tsOptions,
+    })
+
+    // Creates a bundle using the rollup function and writes it to the output directory.
+    const bundle = await rollup(inputOptions)
+    await bundle.write(outputOptions)
+    return
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+// Gets a list of paths to files to compile
+async function getFiles(inputFiles: string | string[]) {
+  let ignoreList: string[] | undefined = undefined
+  if (Array.isArray(inputFiles)) {
+    // Filters the list of files to ignore and removes the ! character from file names.
+    ignoreList = inputFiles.filter((file) => /!/.test(file)).map((item) => item.replace(/!/, ''))
+  }
+  // Gets a list of paths to files to compile using the glob function.
+  return await glob(inputFiles, { ignore: ignoreList })
+}
+
 // export
-export { compile }
+export { compile, tscom }

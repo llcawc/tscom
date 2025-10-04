@@ -1,4 +1,5 @@
 # Ignore files:
-dist/**/*.*
+app/**/*.scss
 **/vendor/**/*.*
-src/**/*.scss
+dist/**/*.*
+lib/**/*.*

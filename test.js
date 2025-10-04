@@ -2,11 +2,11 @@
 import { compile } from './lib/tscom.js'
 
 const compileConfig = {
-  input: 'app/ts/main.ts',
+  input: ['app/ts/*.ts', '!app/ts/main.ts'],
   dir: 'dist/js',
   format: 'es',
   minify: false,
-  sourcemap: true,
+  sourcemap: 'inline',
   tsOptions: {
     compilerOptions: { target: 'ES6' },
     include: ['app/ts/**/*'],

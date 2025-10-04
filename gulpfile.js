@@ -2,7 +2,7 @@
 import { pscss, rename } from '@pasmurno/pscss'
 import { deleteAsync } from 'del'
 import { dest, parallel, series, src } from 'gulp'
-import { compile } from './lib/tscom.js'
+import { compile, tscom } from './lib/tscom.js'
 
 // variables & paths
 const purge = {
@@ -20,7 +20,7 @@ const purge = {
 }
 
 // styles task
-async function styles() {
+function styles() {
   return src(['app/styles/style.scss'])
     .pipe(pscss({ purgeCSSoptions: purge }))
     .pipe(rename({ basename: 'main.css' }))
@@ -34,6 +34,18 @@ async function scripts() {
     dir: 'dist/js',
     format: 'es',
   })
+}
+
+function js() {
+  return src(['app/scripts/*.jsx', '!app/scripts/main.js'], { sourcemaps: true })
+    .pipe(tscom())
+    .pipe(dest('dist/js', { sourcemaps: true }))
+}
+
+function ts() {
+  return src(['app/ts/*.ts', '!app/ts/main.ts'], { sourcemaps: true })
+    .pipe(tscom())
+    .pipe(dest('dist/js', { sourcemaps: '.' }))
 }
 
 // clean task
@@ -64,6 +76,6 @@ function fonts() {
 }
 
 // export
-export { clean, fonts, html, images, scripts, styles }
+export { clean, fonts, html, images, js, scripts, styles, ts }
 export const copy = parallel(html, images, fonts)
-export const build = series(clean, parallel(copy, styles, scripts))
+export const build = series(clean, parallel(copy, styles, ts))

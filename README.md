@@ -1,6 +1,6 @@
 # tscom
 
-> gulp plugin or asynchronous function for javascript or typescript transformation - bundles, compiles and minimizes ".js" and ".ts" files with Rollup, Babel and Rollup plugins.
+> gulp plugin and asynchronous function for javascript or typescript transformation - bundles, compiles and minimizes ".js" and ".ts" files with Rollup, Babel and Rollup plugins.
 > this can be used as a galp plugin with return or with callback
 
 Rollup and babel plugins used:
@@ -19,26 +19,35 @@ install:
 npm add -D tscom
 ```
 
-options:
+### 1. For gulp use `tscom`
 
-```
-{
-    input: string | string[]; // input file or files (glob patterns)
-    dir: string | undefined;  // folder for output files (default: same folder)
-    format: 'amd' | 'cjs' | 'es' | 'iife' | 'umd'; // format output files (default: 'iife')
-    minify: boolean | undefined; // (default: true) minify output files
-    sourcemap: boolean | undefined; // (default: false) include sourcemap files
-    tsOptions: RollupTypescriptOptions | undefined; // tsconfig for typescript files
+```js
+// import modules
+import { dest, src } from "gulp";
+import { tscom } from "tscom";
+
+// scripts task
+function js() {
+  return src(["app/scripts/*.js", "!app/scripts/main.js"], { sourcemaps: true })
+    .pipe(tscom())
+    .pipe(dest("dist/js", { sourcemaps: true })); // for inline source map
 }
 
-default tsOptions:
-  {
-    compilerOptions: { lib: ['ESNext', 'DOM', 'DOM.Iterable'], target: 'ESNext' },
-    include: [dirname(filename) + '/**/*'],
-  }
+// export
+export { js };
 ```
 
-sample:
+`tscom` options:
+
+```js
+{
+  format: "amd" | "cjs" | "es" | "iife" | "umd"; // format output files (default: 'iife')
+  minify: boolean | undefined; // (default: true) minify output files
+  tsOptions: RollupTypescriptOptions | undefined; // tsconfig for typescript files
+}
+```
+
+### 2. For api use `compile`
 
 ```js
 // import modules
@@ -63,6 +72,29 @@ export async function scripts() {
 
 // run scripts
 await scripts();
+```
+
+`compile` options:
+
+```js
+{
+input: string | string[]; // input file or files (glob patterns)
+dir: string | undefined; // folder for output files (default: same folder)
+format: 'amd' | 'cjs' | 'es' | 'iife' | 'umd'; // format output files (default: 'iife')
+minify: boolean | undefined; // (default: true) minify output files
+sourcemap: boolean | 'inline' | 'hidden' | undefined; // (default: false) include sourcemap files
+tsOptions: RollupTypescriptOptions | undefined; // tsconfig for typescript files
+}
+```
+
+default tsOptions:
+
+```js
+{
+compilerOptions: { lib: ['ESNext', 'DOM', 'DOM.Iterable'], target: 'ESNext' },
+include: [dirname(filename) + '/**/*'],
+}
+
 ```
 
 ---
