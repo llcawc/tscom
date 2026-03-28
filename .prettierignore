@@ -1,5 +1,0 @@
-# Ignore files:
-app/**/*.scss
-**/vendor/**/*.*
-dist/**/*.*
-lib/**/*.*

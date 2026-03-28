@@ -1,25 +1,15 @@
 # tscom
 
-> gulp plugin and asynchronous function for javascript or typescript transformation - bundles, compiles and minimizes ".js" and ".ts" files with Rollup, Babel and Rollup plugins.
-> this can be used as a galp plugin with return or with callback
+> Gulp plugin and asynchronous function for JavaScript or TypeScript transformation – bundles, compiles and minifies `.js` and `.ts` files with Rolldown.
+> Can be used as a Gulp plugin (stream) or as a standalone compile function.
 
-Rollup and babel plugins used:
+## Install
 
-- "@babel/core",
-- "@babel/preset-env",
-- "@rollup/plugin-babel",
-- "@rollup/plugin-commonjs",
-- "@rollup/plugin-node-resolve",
-- "@rollup/plugin-terser",
-- "@rollup/plugin-typescript",
-
-install:
-
-```
+```bash
 npm add -D tscom
 ```
 
-### 1. For gulp use `tscom`
+## 1. Gulp plugin `tscom`
 
 ```js
 // import modules
@@ -37,17 +27,18 @@ function js() {
 export { js };
 ```
 
-`tscom` options:
+### `tscom` options
 
 ```js
 {
-  format: "amd" | "cjs" | "es" | "iife" | "umd"; // format output files (default: 'iife')
-  minify: boolean | undefined; // (default: true) minify output files
-  tsOptions: RollupTypescriptOptions | undefined; // tsconfig for typescript files
+  format?: "es" | "cjs" | "iife" | "umd" | "module" | "esm" | "commonjs" | undefined;
+  // output format (default: 'esm')
+  minify?: "dce-only" | boolean | undefined;
+  // minify output (default: 'dce-only')
 }
 ```
 
-### 2. For api use `compile`
+## 2. Standalone API `compile`
 
 ```js
 // import modules
@@ -59,10 +50,6 @@ const compileConfig = {
   format: "es",
   minify: false,
   sourcemap: true,
-  tsOptions: {
-    compilerOptions: { target: "ES6" },
-    include: ["app/ts/**/*"],
-  },
 };
 
 // scripts task
@@ -74,29 +61,22 @@ export async function scripts() {
 await scripts();
 ```
 
-`compile` options:
+### `compile` options
 
 ```js
 {
-input: string | string[]; // input file or files (glob patterns)
-dir: string | undefined; // folder for output files (default: same folder)
-format: 'amd' | 'cjs' | 'es' | 'iife' | 'umd'; // format output files (default: 'iife')
-minify: boolean | undefined; // (default: true) minify output files
-sourcemap: boolean | 'inline' | 'hidden' | undefined; // (default: false) include sourcemap files
-tsOptions: RollupTypescriptOptions | undefined; // tsconfig for typescript files
+  input: string | string[];          // input file(s) – glob patterns supported
+  dir?: string | undefined;          // output folder (default: 'dist')
+  format?: "es" | "cjs" | "iife" | "umd" | "module" | "esm" | "commonjs" | undefined;
+  // output format (default: 'esm')
+  minify?: "dce-only" | boolean | undefined;
+  // minify output (default: 'dce-only')
+  sourcemap?: boolean | "inline" | "hidden" | undefined;
+  // generate source maps (default: false)
 }
-```
-
-default tsOptions:
-
-```js
-{
-compilerOptions: { lib: ['ESNext', 'DOM', 'DOM.Iterable'], target: 'ESNext' },
-include: [dirname(filename) + '/**/*'],
-}
-
 ```
 
 ---
 
-MIT License ©2025 by pasmurno from [llcawc](https://github.com/llcawc). Made with <span style="color:red;">❤</span> to beautiful architecture.
+MIT License © 2026 by pasmurno from [llcawc](https://github.com/llcawc).
+Made with <span style="color:red;">❤</span> for beautiful architecture.

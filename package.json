@@ -1,6 +1,6 @@
 {
   "name": "tscom",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "bundling, compiling, and minifying javascript or typescript files",
   "keywords": [
     "compile",
@@ -15,61 +15,43 @@
   "author": "llcawc",
   "homepage": "https://github.com/llcawc/tscom",
   "type": "module",
-  "main": "./lib/tscom.js",
-  "exports": "./lib/tscom.js",
+  "exports": {
+    ".": {
+      "import": "./dist/tscom.js",
+      "require": "./dist/tscom.cjs"
+    },
+    "./package.json": "./package.json"
+  },
   "files": [
-    "lib",
+    "dist",
     "package.json",
     "LICENSE",
     "README.md"
   ],
   "scripts": {
-    "test": "node test",
-    "format": "prettier --write .",
-    "lint": "prettier --check . && eslint ./app && stylelint app/**/*.scss",
-    "fix": "eslint ./app --fix && stylelint app/**/*.scss --fix",
-    "tsc": "tsc -p ./src",
-    "js": "tsc -p ./app/ts",
-    "build": "gulp build"
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "validate": "tsc --noEmit && vitest --run",
+    "tscheck": "tsc --noEmit",
+    "test": "vitest"
   },
   "devDependencies": {
-    "@eslint/js": "^9.37.0",
-    "@pasmurno/pscss": "^0.0.1",
-    "@pasmurno/serve": "^0.0.4",
-    "@types/babel__core": "^7.20.5",
-    "@types/bootstrap": "^5.2.10",
-    "@types/node": "^24.6.2",
+    "@types/node": "^25.5.0",
     "@types/vinyl": "^2.0.12",
-    "bootstrap": "^5.3.8",
-    "del": "^8.0.1",
-    "eslint": "^9.37.0",
-    "globals": "^16.4.0",
-    "gulp": "^5.0.1",
-    "prettier": "^3.6.2",
-    "prettier-plugin-embed": "^0.5.0",
-    "prettier-plugin-organize-imports": "^4.3.0",
-    "stylelint": "^16.25.0",
-    "stylelint-config-clean-order": "^7.0.0",
-    "stylelint-config-standard": "^39.0.0",
-    "stylelint-config-standard-scss": "^16.0.0",
-    "stylelint-config-twbs-bootstrap": "^16.1.0",
-    "stylelint-scss": "^6.12.1",
-    "typescript-eslint": "^8.45.0",
-    "vinyl": "^3.0.1"
+    "@typescript/native-preview": "7.0.0-dev.20260327.2",
+    "oxfmt": "^0.42.0",
+    "oxlint": "^1.57.0",
+    "tsdown": "^0.21.5",
+    "vinyl": "^3.0.1",
+    "vitest": "^4.1.2"
   },
   "dependencies": {
-    "@babel/core": "^7.28.4",
-    "@babel/preset-env": "^7.28.3",
-    "@rollup/plugin-babel": "^6.0.4",
-    "@rollup/plugin-commonjs": "^28.0.6",
-    "@rollup/plugin-node-resolve": "^16.0.2",
-    "@rollup/plugin-terser": "^0.4.4",
-    "@rollup/plugin-typescript": "^12.1.4",
-    "commander": "^14.0.1",
-    "glob": "^11.0.3",
+    "glob": "^13.0.6",
     "plugin-error": "^2.0.1",
-    "rollup": "^4.52.4",
-    "tslib": "^2.8.1",
-    "typescript": "^5.9.3"
-  }
+    "rolldown": "1.0.0-rc.12",
+    "typescript": "^6.0.2"
+  },
+  "main": "./dist/tscom.cjs",
+  "module": "./dist/tscom.js",
+  "types": "./dist/tscom.d.cts"
 }
