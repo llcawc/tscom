@@ -1,6 +1,6 @@
 # tscom
 
-> Gulp plugin and asynchronous function for JavaScript or TypeScript transformation – bundles, compiles and minifies `.js` and `.ts` files with Rolldown.
+> Gulp plugin and asynchronous function for JavaScript or TypeScript transformation – bundles, compiles and minifies `.js`, `.mjs`, `.cjs`, `.jsx`, `.ts`, `.tsx` files with Rolldown.
 > Can be used as a Gulp plugin (stream) or as a standalone compile function.
 
 ## Install
@@ -17,14 +17,15 @@ import { dest, src } from "gulp";
 import { tscom } from "tscom";
 
 // scripts task
-function js() {
-  return src(["app/scripts/*.js", "!app/scripts/main.js"], { sourcemaps: true })
-    .pipe(tscom())
+function script() {
+  return src(["app/scripts/*.js", "!app/scripts/test.js"], { sourcemaps: true })
+    .pipe(tscom({ format: "module", minify: { format: { comments: "some" } } }))
     .pipe(dest("dist/js", { sourcemaps: true })); // for inline source map
+  // or { sourcemaps: '.' } for outline source map
 }
 
 // export
-export { js };
+export { script };
 ```
 
 ### `tscom` options
@@ -33,10 +34,15 @@ export { js };
 {
   format?: "es" | "cjs" | "iife" | "umd" | "module" | "esm" | "commonjs" | undefined;
   // output format (default: 'esm')
-  minify?: "dce-only" | boolean | undefined;
-  // minify output (default: 'dce-only')
+  minify?: boolean | import('terser').MinifyOptions | undefined;
+  // minify output using Terser (default: true)
+  // When `true`, default Terser options are applied.
+  // When an object, it is passed directly to Terser.
+  // When `false`, minification is skipped.
 }
 ```
+
+**Note:** The `tscom` plugin uses [Terser](https://github.com/terser/terser) for minification. If `minify` is `true` or an options object, the bundled code is passed through Terser after Rolldown bundling. Source maps are preserved when `sourcemaps` are enabled in the Gulp pipeline.
 
 ## 2. Standalone API `compile`
 
@@ -47,9 +53,9 @@ import { compile } from "tscom";
 const compileConfig = {
   input: "app/ts/main.ts",
   dir: "dist/js",
-  format: "es",
+  format: "umd",
   minify: false,
-  sourcemap: true,
+  sourcemap: "inline",
 };
 
 // scripts task
@@ -69,12 +75,35 @@ await scripts();
   dir?: string | undefined;          // output folder (default: 'dist')
   format?: "es" | "cjs" | "iife" | "umd" | "module" | "esm" | "commonjs" | undefined;
   // output format (default: 'esm')
-  minify?: "dce-only" | boolean | undefined;
-  // minify output (default: 'dce-only')
+  minify?: boolean | "dce-only" | undefined;
+  // minify output using Rolldown's built‑in minifier (default: true)
+  // When `true`, Rolldown performs full minification.
+  // When `"dce-only"`, only dead‑code elimination is applied.
+  // When `false`, minification is disabled.
   sourcemap?: boolean | "inline" | "hidden" | undefined;
   // generate source maps (default: false)
 }
 ```
+
+**Note:** The `compile` function relies on Rolldown's internal minification, which is different from the Terser‑based minification used by the `tscom` plugin. Rolldown's minifier is faster but may produce slightly different output.
+
+## Supported file extensions
+
+The plugin accepts the following extensions:
+
+- `.js`, `.mjs`, `.cjs`, `.jsx`
+- `.ts`, `.tsx`
+
+All other extensions will cause an error.
+
+## Minification behavior
+
+| Function  | Minification engine | Default | Options                             |
+| --------- | ------------------- | ------- | ----------------------------------- |
+| `tscom`   | Terser              | `true`  | `boolean` or `terser.MinifyOptions` |
+| `compile` | Rolldown built‑in   | `true`  | `boolean` or `"dce-only"`           |
+
+If you need fine‑grained control over minification (e.g., preserving certain comments, mangling options), use the `tscom` plugin with a Terser options object. For faster builds with basic minification, use `compile` with `minify: true` or `"dce-only"`.
 
 ---
 

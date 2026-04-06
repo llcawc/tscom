@@ -1,55 +1,24 @@
 import { Transform } from "node:stream";
+import { InputOptions, OutputOptions } from "rolldown";
+import { MinifyOptions } from "terser";
 
 //#region src/tscom.d.ts
-type Format = 'es' | 'cjs' | 'iife' | 'umd' | 'module' | 'esm' | 'commonjs' | undefined;
-type Minify = 'dce-only' | boolean | undefined;
-type SourceMap = boolean | 'inline' | 'hidden' | undefined;
 interface CompileOptions {
   input: string | string[];
   dir?: string | undefined;
-  format?: Format;
-  minify?: Minify;
-  sourcemap?: SourceMap;
-}
-interface FileCompileOptions {
-  filename: string;
-  dir?: string | undefined;
-  format?: Format;
-  minify?: Minify;
-  sourcemap?: SourceMap;
-}
-interface DefineOptionsResult {
-  inputOptions: {
-    input: string;
-  };
-  outputOptions: {
-    dir?: string | undefined;
-    format?: Format;
-    sourcemap?: SourceMap;
-    minify?: Minify;
-  };
+  format?: 'es' | 'cjs' | 'iife' | 'umd' | 'module' | 'esm' | 'commonjs' | undefined;
+  minify?: boolean | 'dce-only' | undefined;
+  sourcemap?: boolean | 'inline' | 'hidden' | undefined;
 }
 interface TscomOptions {
-  tsconfig?: string | undefined;
-  format?: Format;
-  minify?: Minify;
+  format?: 'es' | 'cjs' | 'iife' | 'umd' | 'module' | 'esm' | 'commonjs' | undefined;
+  minify?: MinifyOptions | boolean | undefined;
 }
-declare function defineOptions({
-  filename,
-  // file name for compile
-  dir,
-  // output dir for bundle.write
-  format,
-  // format output files (default: 'esm')
-  minify,
-  // (default: 'dce-only') minify output files
-  sourcemap
-}: FileCompileOptions): DefineOptionsResult;
 /**
  * Gulp plugin for compiles, bundles and minify JavaScript or TypeScript files using Rolldown.
- * @param format - The output format for the compiled files.
- * @param minify - Whether to minify the compiled files.
- * @returns - Transform stream
+ * @param format - The output format for the compiled files. (default: 'esm')
+ * @param minify - Whether to minify the compiled files. (default: true)
+ * @returns Transform stream
  */
 declare function tscom({
   format,
@@ -59,11 +28,11 @@ declare function tscom({
 /**
  * Compiles, bundles and minify JavaScript or TypeScript files using Rolldown.
  * @param input - The glob input file or files to compile.
- * @param dir - The output directory for the compiled files.
- * @param format - The output format for the compiled files.
- * @param minify - Whether to minify the compiled files.
- * @param sourcemap - Whether to generate source maps for the compiled files.
- * @returns - Promise<void>
+ * @param dir - The output directory for the compiled files. (default: 'dist')
+ * @param format - The output format for the compiled files. (default: 'esm')
+ * @param minify - Whether to minify the compiled files. (default: 'true)
+ * @param sourcemap - Whether to generate source maps for the compiled files. (default: false)
+ * @returns Promise void
  *
  * @example
  *
@@ -96,9 +65,9 @@ declare function compile({
   format,
   // format output files (default: 'esm')
   minify,
-  // minify output files (default: 'dce-only')
+  // minify output files (default: 'true)
   sourcemap
 }: CompileOptions): Promise<void>;
 declare function getFiles(inputFiles: string | string[]): Promise<string[]>;
 //#endregion
-export { type CompileOptions, type DefineOptionsResult, type FileCompileOptions, type TscomOptions, compile, defineOptions, getFiles, tscom };
+export { type CompileOptions, type InputOptions, type MinifyOptions, type OutputOptions, type TscomOptions, compile, getFiles, tscom };

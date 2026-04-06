@@ -23,29 +23,19 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 //#endregion
 let node_buffer = require("node:buffer");
 let node_stream = require("node:stream");
-let glob = require("glob");
 let plugin_error = require("plugin-error");
 plugin_error = __toESM(plugin_error);
 let rolldown = require("rolldown");
+let terser = require("terser");
+let tinyglobby = require("tinyglobby");
 //#region src/tscom.ts
-function defineOptions({ filename, dir = "dist", format = "esm", minify = "dce-only", sourcemap = false }) {
-	return {
-		inputOptions: { input: filename },
-		outputOptions: {
-			dir,
-			format,
-			sourcemap,
-			minify
-		}
-	};
-}
 /**
 * Gulp plugin for compiles, bundles and minify JavaScript or TypeScript files using Rolldown.
-* @param format - The output format for the compiled files.
-* @param minify - Whether to minify the compiled files.
-* @returns - Transform stream
+* @param format - The output format for the compiled files. (default: 'esm')
+* @param minify - Whether to minify the compiled files. (default: true)
+* @returns Transform stream
 */
-function tscom({ format = "esm", minify = "dce-only" } = {}) {
+function tscom({ format = "esm", minify = true } = {}) {
 	const stream = new node_stream.Transform({ objectMode: true });
 	stream._transform = async function(file, _enc, callback) {
 		if (file.isNull()) return callback(null, file);
@@ -55,25 +45,46 @@ function tscom({ format = "esm", minify = "dce-only" } = {}) {
 		}
 		if (file.isBuffer()) {
 			const filename = file.path;
-			const dir = void 0;
-			const sourcemap = file.sourceMap ? "hidden" : false;
+			const isMap = file.sourceMap ? true : false;
+			const isMin = minify ? true : false;
 			try {
-				if (!/\.js$|\.ts$/i.test(filename)) throw new Error("Only file extensions \".js\" or \".ts\" are supported!");
-				const { inputOptions, outputOptions } = defineOptions({
-					filename,
-					dir,
+				if (!truExt(filename)) throw new Error("Only file extensions \".js\" or \".ts\" are supported!");
+				const inputOptions = { input: filename };
+				const outputOptions = {
 					format,
-					minify,
-					sourcemap
-				});
+					minify: false,
+					sourcemap: isMap ? "hidden" : false
+				};
 				const { output } = await (await (0, rolldown.rolldown)(inputOptions)).generate(outputOptions);
 				const chunk = output[0];
-				if (/\.ts$/i.test(filename)) file.extname = ".js";
-				file.contents = node_buffer.Buffer.from(chunk.code);
-				if (sourcemap && chunk.map) file.sourceMap = chunk.map;
+				if (!/\.js$/i.test(filename)) file.extname = ".js";
+				const terserMap = {
+					content: chunk.map ? JSON.stringify(chunk.map) : void 0,
+					url: void 0
+				};
+				const minOptions = typeof minify === "object" ? {
+					...minify,
+					sourceMap: terserMap
+				} : {
+					sourceMap: terserMap,
+					format: { comments: false }
+				};
+				if (isMin) {
+					const { code, map } = await (0, terser.minify)(chunk.code, minOptions);
+					file.contents = node_buffer.Buffer.from(code ?? chunk.code);
+					if (isMap && map) try {
+						file.sourceMap = JSON.parse(typeof map === "string" ? map : JSON.stringify(map));
+					} catch {
+						if (chunk.map) file.sourceMap = chunk.map;
+					}
+				} else {
+					file.contents = node_buffer.Buffer.from(chunk.code);
+					if (isMap && chunk.map) file.sourceMap = chunk.map;
+				}
 				callback(null, file);
 			} catch (err) {
-				callback(new plugin_error.default("tscom", err, Object.assign({}, { fileName: file.path })));
+				const opts = Object.assign({}, { fileName: file.path });
+				callback(new plugin_error.default("tscom", err instanceof Error ? err.message : String(err), opts));
 			}
 		}
 	};
@@ -82,11 +93,11 @@ function tscom({ format = "esm", minify = "dce-only" } = {}) {
 /**
 * Compiles, bundles and minify JavaScript or TypeScript files using Rolldown.
 * @param input - The glob input file or files to compile.
-* @param dir - The output directory for the compiled files.
-* @param format - The output format for the compiled files.
-* @param minify - Whether to minify the compiled files.
-* @param sourcemap - Whether to generate source maps for the compiled files.
-* @returns - Promise<void>
+* @param dir - The output directory for the compiled files. (default: 'dist')
+* @param format - The output format for the compiled files. (default: 'esm')
+* @param minify - Whether to minify the compiled files. (default: 'true)
+* @param sourcemap - Whether to generate source maps for the compiled files. (default: false)
+* @returns Promise void
 *
 * @example
 *
@@ -111,7 +122,7 @@ function tscom({ format = "esm", minify = "dce-only" } = {}) {
 * await scripts();
 * ```
 */
-async function compile({ input, dir = "dist", format = "esm", minify = "dce-only", sourcemap = false }) {
+async function compile({ input, dir = "dist", format = "esm", minify = true, sourcemap = false }) {
 	const pathList = await getFiles(input);
 	if (!input || pathList.length === 0) throw new Error("Not found input file/s");
 	await Promise.all(pathList.map((filename) => compileFile({
@@ -123,15 +134,20 @@ async function compile({ input, dir = "dist", format = "esm", minify = "dce-only
 	})));
 }
 async function compileFile({ filename, dir, format, minify, sourcemap }) {
-	if (!/\.js$|\.ts$/i.test(filename)) throw new Error(`Only file extensions ".js" or ".ts" are supported!\nDetails:\n  filename: ${filename}`);
-	const { inputOptions, outputOptions } = defineOptions({
-		filename,
+	if (!truExt(filename)) throw new Error(`Only file extensions ".js" or ".ts" are supported!\nDetails:\n  filename: ${filename}`);
+	const inputOptions = { input: filename };
+	const outputOptions = {
 		dir,
 		format,
 		minify,
-		sourcemap
-	});
+		sourcemap,
+		comments: minify === true ? false : true
+	};
 	await (await (0, rolldown.rolldown)(inputOptions)).write(outputOptions);
+}
+function truExt(filename) {
+	if (/\.js$|\.mjs$|\.cjs$|\.jsx$|\.ts$|\.tsx$/i.test(filename)) return true;
+	return false;
 }
 async function getFiles(inputFiles) {
 	let patterns = inputFiles;
@@ -142,10 +158,9 @@ async function getFiles(inputFiles) {
 		patterns = positivePatterns.length > 0 ? positivePatterns : [];
 		ignoreList = negativePatterns.length > 0 ? negativePatterns : void 0;
 	}
-	return await (0, glob.glob)(patterns, { ignore: ignoreList });
+	return await (0, tinyglobby.glob)(patterns, { ignore: ignoreList });
 }
 //#endregion
 exports.compile = compile;
-exports.defineOptions = defineOptions;
 exports.getFiles = getFiles;
 exports.tscom = tscom;

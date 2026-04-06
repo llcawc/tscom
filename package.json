@@ -1,20 +1,28 @@
 {
   "name": "tscom",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "bundling, compiling, and minifying javascript or typescript files",
   "keywords": [
+    "bundle",
     "compile",
     "javascript",
-    "typescript",
-    "bundle",
     "minify",
-    "rollup",
-    "babel"
+    "rolldown",
+    "typescript"
   ],
+  "homepage": "https://github.com/llcawc/tscom",
   "license": "MIT",
   "author": "llcawc",
-  "homepage": "https://github.com/llcawc/tscom",
+  "files": [
+    "dist",
+    "package.json",
+    "LICENSE",
+    "README.md"
+  ],
   "type": "module",
+  "main": "./dist/tscom.cjs",
+  "module": "./dist/tscom.js",
+  "types": "./dist/tscom.d.cts",
   "exports": {
     ".": {
       "import": "./dist/tscom.js",
@@ -22,12 +30,6 @@
     },
     "./package.json": "./package.json"
   },
-  "files": [
-    "dist",
-    "package.json",
-    "LICENSE",
-    "README.md"
-  ],
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
@@ -35,23 +37,22 @@
     "tscheck": "tsc --noEmit",
     "test": "vitest"
   },
-  "devDependencies": {
-    "@types/node": "^25.5.0",
-    "@types/vinyl": "^2.0.12",
-    "@typescript/native-preview": "7.0.0-dev.20260327.2",
-    "oxfmt": "^0.42.0",
-    "oxlint": "^1.57.0",
-    "tsdown": "^0.21.5",
-    "vinyl": "^3.0.1",
-    "vitest": "^4.1.2"
-  },
   "dependencies": {
-    "glob": "^13.0.6",
     "plugin-error": "^2.0.1",
-    "rolldown": "1.0.0-rc.12",
+    "rolldown": "1.0.0-rc.13",
+    "terser": "^5.46.1",
+    "tinyglobby": "^0.2.15",
     "typescript": "^6.0.2"
   },
-  "main": "./dist/tscom.cjs",
-  "module": "./dist/tscom.js",
-  "types": "./dist/tscom.d.cts"
+  "devDependencies": {
+    "@types/node": "^25.5.2",
+    "@types/picomatch": "^4.0.3",
+    "@types/vinyl": "^2.0.12",
+    "@typescript/native-preview": "7.0.0-dev.20260406.1",
+    "oxfmt": "^0.43.0",
+    "oxlint": "^1.58.0",
+    "tsdown": "^0.21.7",
+    "vinyl": "^3.0.1",
+    "vitest": "^4.1.2"
+  }
 }

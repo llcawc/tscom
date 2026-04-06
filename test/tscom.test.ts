@@ -100,15 +100,14 @@ describe('tscom', () => {
       input: 'test.js',
     })
     expect(mockBundle.generate).toHaveBeenCalledWith({
-      dir: 'dist',
       format: 'esm',
       sourcemap: false,
-      minify: 'dce-only',
+      minify: false,
     })
     expect(callback).toHaveBeenCalledWith(null, expect.any(Object))
     // Проверяем, что содержимое файла обновлено
     const resultFile = callback.mock.calls[0][1]
-    expect(resultFile.contents.toString()).toBe('console.log("hello")')
+    expect(resultFile.contents.toString()).toBe('console.log("hello");')
   })
 
   it('should rename .ts extension to .js', async () => {
@@ -145,18 +144,22 @@ describe('tscom', () => {
   it('should handle source maps', async () => {
     const mockSourceMap = { version: 3 }
     const mockBundle = {
-      generate: vi.fn().mockResolvedValue({
-        output: [
-          {
-            code: 'console.log("with map")',
-            map: mockSourceMap,
-          },
-        ],
+      generate: vi.fn().mockImplementation(async () => {
+        const result = {
+          output: [
+            {
+              code: 'console.log("with map")',
+              map: JSON.stringify(mockSourceMap),
+            },
+          ],
+        }
+        console.log('generate returning', result)
+        return result
       }),
     }
     ;(rolldown as any).mockResolvedValue(mockBundle)
 
-    const plugin = tscom()
+    const plugin = tscom({ minify: false })
     const mockFile = {
       isNull: () => false,
       isStream: () => false,
@@ -171,12 +174,14 @@ describe('tscom', () => {
     // @ts-expect-error доступ к приватному методу
     await plugin._transform(mockFile, null, callback)
     expect(mockBundle.generate).toHaveBeenCalledWith({
-      dir: 'dist',
       format: 'esm',
       sourcemap: 'hidden',
-      minify: 'dce-only',
+      minify: false,
     })
+    expect(callback).toHaveBeenCalledTimes(1)
+    expect(callback).toHaveBeenCalledWith(null, expect.any(Object))
     const resultFile = callback.mock.calls[0][1]
-    expect(resultFile.sourceMap).toEqual(mockSourceMap)
+    expect(resultFile).toBeDefined()
+    expect(resultFile.sourceMap).toEqual(JSON.stringify(mockSourceMap))
   })
 })

@@ -1,66 +1,12 @@
-import { glob } from 'glob'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-import { defineOptions, getFiles } from '../src/tscom'
+import { getFiles } from '../src/tscom'
+import { glob } from 'tinyglobby'
 
-// Мокируем glob для тестов getFiles
-vi.mock('glob', () => ({
+// Мокируем tinyglobby для тестов getFiles
+vi.mock('tinyglobby', () => ({
   glob: vi.fn(),
 }))
-
-describe('defineOptions', () => {
-  it('should return inputOptions and outputOptions with defaults', () => {
-    const result = defineOptions({
-      filename: 'src/app.js',
-    })
-
-    expect(result.inputOptions).toEqual({
-      input: 'src/app.js',
-    })
-    expect(result.outputOptions).toEqual({
-      dir: 'dist',
-      format: 'esm',
-      sourcemap: false,
-      minify: 'dce-only',
-    })
-  })
-
-  it('should override defaults', () => {
-    const result = defineOptions({
-      filename: 'src/app.ts',
-      dir: 'out',
-      format: 'es',
-      minify: true,
-      sourcemap: 'inline',
-    })
-
-    expect(result.inputOptions).toEqual({
-      input: 'src/app.ts',
-    })
-    expect(result.outputOptions).toEqual({
-      dir: 'out',
-      format: 'es',
-      sourcemap: 'inline',
-      minify: true,
-    })
-  })
-
-  it('should handle minify as false', () => {
-    const result = defineOptions({
-      filename: 'src/app.js',
-      minify: false,
-    })
-    expect(result.outputOptions.minify).toBe(false)
-  })
-
-  it('should handle sourcemap as hidden', () => {
-    const result = defineOptions({
-      filename: 'src/app.js',
-      sourcemap: 'hidden',
-    })
-    expect(result.outputOptions.sourcemap).toBe('hidden')
-  })
-})
 
 describe('getFiles', () => {
   beforeEach(() => {

@@ -1,15 +1,15 @@
-import { glob } from 'glob'
 import { rolldown } from 'rolldown'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 import { compile } from '../src/tscom'
+import { glob } from 'tinyglobby'
 
-// Мокируем rolldown и glob
+// Мокируем rolldown и tinyglobby
 vi.mock('rolldown', () => ({
   rolldown: vi.fn(),
 }))
 
-vi.mock('glob', () => ({
+vi.mock('tinyglobby', () => ({
   glob: vi.fn(),
 }))
 
@@ -44,6 +44,7 @@ describe('compile', () => {
       format: 'es',
       sourcemap: false,
       minify: false,
+      comments: true,
     })
   })
 
@@ -126,7 +127,8 @@ describe('compile', () => {
       dir: 'dist',
       format: 'esm',
       sourcemap: false,
-      minify: 'dce-only',
+      minify: true,
+      comments: false,
     })
   })
 
