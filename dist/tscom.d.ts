@@ -1,17 +1,16 @@
 import { Transform } from "node:stream";
 import { InputOptions, OutputOptions } from "rolldown";
 import { MinifyOptions } from "terser";
-
 //#region src/tscom.d.ts
 interface CompileOptions {
   input: string | string[];
   dir?: string | undefined;
-  format?: 'es' | 'cjs' | 'iife' | 'umd' | 'module' | 'esm' | 'commonjs' | undefined;
-  minify?: boolean | 'dce-only' | undefined;
-  sourcemap?: boolean | 'inline' | 'hidden' | undefined;
+  format?: "es" | "cjs" | "iife" | "umd" | "module" | "esm" | "commonjs" | undefined;
+  minify?: boolean | "dce-only" | undefined;
+  sourcemap?: boolean | "inline" | "hidden" | undefined;
 }
 interface TscomOptions {
-  format?: 'es' | 'cjs' | 'iife' | 'umd' | 'module' | 'esm' | 'commonjs' | undefined;
+  format?: "es" | "cjs" | "iife" | "umd" | "module" | "esm" | "commonjs" | undefined;
   minify?: MinifyOptions | boolean | undefined;
 }
 /**
@@ -20,11 +19,7 @@ interface TscomOptions {
  * @param minify - Whether to minify the compiled files. (default: true)
  * @returns Transform stream
  */
-declare function tscom({
-  format,
-  // format output files (default: 'esm')
-  minify
-}?: TscomOptions): Transform;
+declare function tscom({ format, minify }?: TscomOptions): Transform;
 /**
  * Compiles, bundles and minify JavaScript or TypeScript files using Rolldown.
  * @param input - The glob input file or files to compile.
@@ -57,17 +52,7 @@ declare function tscom({
  * await scripts();
  * ```
  */
-declare function compile({
-  input,
-  // glob input file or files to compile
-  dir,
-  // output dir for bundle.write (default: 'dist')
-  format,
-  // format output files (default: 'esm')
-  minify,
-  // minify output files (default: 'true)
-  sourcemap
-}: CompileOptions): Promise<void>;
+declare function compile({ input, dir, format, minify, sourcemap }: CompileOptions): Promise<void>;
 declare function getFiles(inputFiles: string | string[]): Promise<string[]>;
 //#endregion
 export { type CompileOptions, type InputOptions, type MinifyOptions, type OutputOptions, type TscomOptions, compile, getFiles, tscom };
