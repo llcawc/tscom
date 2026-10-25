@@ -44,6 +44,8 @@ export { script };
 
 **Note:** The `tscom` plugin uses [Terser](https://github.com/terser/terser) for minification. If `minify` is `true` or an options object, the bundled code is passed through Terser after Rolldown bundling. Source maps are preserved when `sourcemaps` are enabled in the Gulp pipeline.
 
+**Note:** Format aliases `esm` / `module` are normalized to `es`, and `commonjs` to `cjs` before passing options to Rolldown.
+
 ## 2. Standalone API `compile`
 
 ```js

@@ -24,6 +24,7 @@ describe('compile', () => {
 
     const mockBundle = {
       write: vi.fn().mockResolvedValue(undefined),
+      close: vi.fn().mockResolvedValue(undefined),
     }
     ;(rolldown as any).mockResolvedValue(mockBundle)
 
@@ -53,6 +54,7 @@ describe('compile', () => {
 
     const mockBundle = {
       write: vi.fn().mockResolvedValue(undefined),
+      close: vi.fn().mockResolvedValue(undefined),
     }
     ;(rolldown as any).mockResolvedValue(mockBundle)
 
@@ -75,6 +77,7 @@ describe('compile', () => {
 
     const mockBundle = {
       write: vi.fn().mockResolvedValue(undefined),
+      close: vi.fn().mockResolvedValue(undefined),
     }
     ;(rolldown as any).mockResolvedValue(mockBundle)
 
@@ -94,7 +97,7 @@ describe('compile', () => {
       compile({
         input: 'src/*.txt',
       }),
-    ).rejects.toThrow('Only file extensions ".js" or ".ts" are supported')
+    ).rejects.toThrow('Only file extensions ".js", ".mjs", ".cjs", ".jsx", ".ts" or ".tsx" are supported')
   })
 
   it('should propagate errors from rolldown', async () => {
@@ -113,6 +116,7 @@ describe('compile', () => {
 
     const mockBundle = {
       write: vi.fn().mockResolvedValue(undefined),
+      close: vi.fn().mockResolvedValue(undefined),
     }
     ;(rolldown as any).mockResolvedValue(mockBundle)
 
@@ -125,7 +129,7 @@ describe('compile', () => {
     })
     expect(mockBundle.write).toHaveBeenCalledWith({
       dir: 'dist',
-      format: 'esm',
+      format: 'es',
       sourcemap: false,
       minify: true,
       comments: false,
@@ -137,6 +141,7 @@ describe('compile', () => {
 
     const mockBundle = {
       write: vi.fn().mockResolvedValue(undefined),
+      close: vi.fn().mockResolvedValue(undefined),
     }
     ;(rolldown as any).mockResolvedValue(mockBundle)
 

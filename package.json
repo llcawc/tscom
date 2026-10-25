@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "plugin-error": "^2.0.1",
-    "rolldown": "1.2.14",
+    "rolldown": "1.2.15",
     "terser": "^5.51.2",
     "tinyglobby": "^0.2.17",
     "typescript": "^7.0.2"
@@ -53,9 +53,9 @@
     "@types/picomatch": "^4.0.3",
     "@types/vinyl": "^2.0.12",
     "@typescript/native-preview": "7.0.0-dev.20260707.2",
-    "oxfmt": "^0.73.0",
-    "oxlint": "^1.88.0",
-    "tsdown": "^0.23.1",
+    "oxfmt": "0.74.0",
+    "oxlint": "^1.89.0",
+    "tsdown": "^0.23.2",
     "vinyl": "^3.0.1",
     "vitest": "^5.0.5"
   }

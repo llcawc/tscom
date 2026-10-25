@@ -65,7 +65,7 @@ describe('tscom', () => {
     // Ошибка должна быть передана в callback
     expect(callback).toHaveBeenCalledWith(expect.any(Error))
     const error = callback.mock.calls[0][0]
-    expect(error.message).toContain('Only file extensions ".js" or ".ts" are supported')
+    expect(error.message).toContain('Only file extensions ".js", ".mjs", ".cjs", ".jsx", ".ts" or ".tsx" are supported')
   })
 
   it('should process .js file correctly', async () => {
@@ -79,6 +79,7 @@ describe('tscom', () => {
           },
         ],
       }),
+      close: vi.fn().mockResolvedValue(undefined),
     }
     ;(rolldown as any).mockResolvedValue(mockBundle)
 
@@ -100,7 +101,7 @@ describe('tscom', () => {
       input: 'test.js',
     })
     expect(mockBundle.generate).toHaveBeenCalledWith({
-      format: 'esm',
+      format: 'es',
       sourcemap: false,
       minify: false,
     })
@@ -120,6 +121,7 @@ describe('tscom', () => {
           },
         ],
       }),
+      close: vi.fn().mockResolvedValue(undefined),
     }
     ;(rolldown as any).mockResolvedValue(mockBundle)
 
@@ -156,6 +158,7 @@ describe('tscom', () => {
         console.log('generate returning', result)
         return result
       }),
+      close: vi.fn().mockResolvedValue(undefined),
     }
     ;(rolldown as any).mockResolvedValue(mockBundle)
 
@@ -174,7 +177,7 @@ describe('tscom', () => {
     // @ts-expect-error доступ к приватному методу
     await plugin._transform(mockFile, null, callback)
     expect(mockBundle.generate).toHaveBeenCalledWith({
-      format: 'esm',
+      format: 'es',
       sourcemap: 'hidden',
       minify: false,
     })
@@ -182,6 +185,6 @@ describe('tscom', () => {
     expect(callback).toHaveBeenCalledWith(null, expect.any(Object))
     const resultFile = callback.mock.calls[0][1]
     expect(resultFile).toBeDefined()
-    expect(resultFile.sourceMap).toEqual(JSON.stringify(mockSourceMap))
+    expect(resultFile.sourceMap).toEqual(mockSourceMap)
   })
 })
